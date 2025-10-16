@@ -1,21 +1,197 @@
-MIT License
+# E-Government Citizen Services Portal
 
-Copyright (c) 2025 Maryam
+**A full-stack web application that allows citizens to apply for government services online, enables officers to manage requests, and allows administrators to oversee departments, users, and reports.**
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+---
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## Project Overview
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+This project simulates a modern E-Government system where citizens can submit requests for government services without visiting physical offices. Officers review and process requests, while administrators manage users, departments, and generate reports.
+
+**Goals:**
+
+- Simplify citizen-government interactions
+- Provide secure authentication and role-based authorization
+- Support payment processing for services
+- Enable notifications and email updates for users
+
+---
+
+## Features
+
+- **User Roles:**
+
+  - Citizen: Submit and track requests, make payments
+  - Officer: Review requests in assigned department
+  - Department Head: Approve or reject requests
+  - Admin: Manage departments, users, services, and view analytics
+
+- **Service Requests:**
+
+  - Create, view, update, cancel, and track requests
+  - Upload and manage documents
+  - Priority and status management
+
+- **Payments:**
+
+  - Simulated payment processing
+  - Transaction and receipt management
+  - Email notifications for successful and failed payments
+
+- **Notifications & Emails:**
+
+  - In-app notifications for status updates
+  - Email templates for requests and payments
+
+- **Search, Filter & Pagination:**
+
+  - Filter requests by status, department, service, priority
+  - Search by request number or notes
+  - Paginated results for requests and payments
+
+- **Statistics:**
+
+  - Requests statistics by status
+  - Payment statistics including total revenue, completed, and failed transactions
+
+---
+
+## Technology Stack
+
+- **Backend:** Node.js, Express.js
+- **Frontend:** React.js (planned for frontend integration)
+- **Database:** PostgreSQL with Sequelize ORM
+- **Authentication:** JWT-based authentication
+- **Email Service:** Nodemailer
+- **Utilities:** dotenv, Joi (for validation), Sequelize
+- **Dev Tools:** Nodemon
+
+---
+
+## Installation & Setup
+
+1. **Clone the repository:**
+
+```bash
+git clone https://github.com/yourusername/e-government-portal.git
+cd e-government-portal
+```
+
+2. **Install dependencies:**
+
+```bash
+npm install
+```
+
+3. **Setup PostgreSQL database:**
+
+- Create a database named `e_government`
+- Run Sequelize migrations (if implemented) or use the provided SQL schema
+
+5. **Run the server:**
+
+```bash
+npm run dev
+```
+
+Server will start at `http://localhost:5000`.
+
+---
+
+## Environment Variables
+
+| Variable       | Description                       |
+| -------------- | --------------------------------- |
+| PORT           | Server port                       |
+| JWT_SECRET     | Secret key for JWT authentication |
+| JWT_EXPIRE     | Token expiration time             |
+| DB_HOST        | Database host                     |
+| DB_USER        | Database user                     |
+| DB_PASSWORD    | Database password                 |
+| DB_NAME        | Database name                     |
+| EMAIL_HOST     | SMTP host for emails              |
+| EMAIL_PORT     | SMTP port                         |
+| EMAIL_USER     | SMTP username                     |
+| EMAIL_PASSWORD | SMTP password                     |
+| EMAIL_FROM     | Default sender email              |
+
+---
+
+## Database Schema
+
+**Tables:**
+
+- Users
+- Departments
+- Services
+- Requests
+- Payments
+- Notifications
+- Documents
+
+**Relationships:**
+
+- User ↔ Request (1:N)
+- Department ↔ Service (1:N)
+- Request ↔ Payment (1:1)
+- Request ↔ Document (1:N)
+- User ↔ Notification (1:N)
+
+---
+
+## API Endpoints
+
+### Authentication
+
+- `POST /api/auth/register` – Register new user
+- `POST /api/auth/login` – Login and get JWT
+
+### Requests
+
+- `POST /api/requests` – Create a new request
+- `GET /api/requests` – Get all requests with filters
+- `GET /api/requests/:id` – Get request by ID
+- `PATCH /api/requests/:id` – Update request status
+- `DELETE /api/requests/:id` – Cancel a request
+
+### Payments
+
+- `POST /api/payments/simulate` – Simulate payment
+- `GET /api/payments/:requestId` – Get payment by request
+- `GET /api/payments` – Admin: Get all payments
+- `PATCH /api/payments/refund/:id` – Admin: Refund payment
+
+### Notifications
+
+- `GET /api/notifications` – Get user notifications
+
+---
+
+## Usage
+
+1. Register as a **citizen** to create requests
+2. Login as **officer/admin** to review requests and process payments
+3. Use the `/payments/simulate` endpoint to test payment functionality
+4. Notifications and emails are automatically sent on request creation and payment processing
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/FeatureName`)
+3. Commit your changes (`git commit -m 'Add some feature'`)
+4. Push to the branch (`git push origin feature/FeatureName`)
+5. Open a Pull Request
+
+---
+
+## License
+
+This project is **MIT licensed**. See [LICENSE](LICENSE) for details.
+
+---
+
+I can also make a **version with badges, screenshots, and deployment instructions** for a fully professional GitHub presentation.
+
+Do you want me to do that next?
