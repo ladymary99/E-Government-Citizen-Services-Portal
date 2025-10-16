@@ -1,6 +1,9 @@
-const { Payment, Request, Service, User, Notification } = require('../models');
-const { generateTransactionId, generateReceiptNumber } = require('../utils/helpers');
-const { sendEmail, emailTemplates } = require('../utils/emailService');
+const { Payment, Request, Service, User, Notification } = require("../models");
+const {
+  generateTransactionId,
+  generateReceiptNumber,
+} = require("../utils/helpers");
+const { sendEmail, emailTemplates } = require("../utils/emailService");
 
 // Simulate payment for a request
 const simulatePayment = async (req, res, next) => {
@@ -11,23 +14,23 @@ const simulatePayment = async (req, res, next) => {
     // Verify request exists
     const request = await Request.findByPk(requestId, {
       include: [
-        { model: Service, as: 'service' },
-        { model: User, as: 'citizen' }
-      ]
+        { model: Service, as: "service" },
+        { model: User, as: "citizen" },
+      ],
     });
 
     if (!request) {
       return res.status(404).json({
         success: false,
-        message: 'Request not found'
+        message: "Request not found",
       });
     }
 
     // Check authorization
-    if (req.user.role === 'citizen' && request.userId !== userId) {
+    if (req.user.role === "citizen" && request.userId !== userId) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: "Access denied",
       });
     }
 
@@ -36,7 +39,7 @@ const simulatePayment = async (req, res, next) => {
     if (existingPayment) {
       return res.status(400).json({
         success: false,
-        message: 'Payment already processed for this request'
+        message: "Payment already processed for this request",
       });
     }
 
@@ -54,9 +57,9 @@ const simulatePayment = async (req, res, next) => {
       userId,
       amount,
       paymentMethod,
-      paymentStatus: paymentSuccess ? 'completed' : 'failed',
+      paymentStatus: paymentSuccess ? "completed" : "failed",
       paymentDate: paymentSuccess ? new Date() : null,
-      receiptNumber: paymentSuccess ? receiptNumber : null
+      receiptNumber: paymentSuccess ? receiptNumber : null,
     });
 
     if (paymentSuccess) {
@@ -64,9 +67,9 @@ const simulatePayment = async (req, res, next) => {
       await Notification.create({
         userId,
         requestId,
-        title: 'Payment Successful',
-        message: Payment of $${amount} completed successfully. Transaction ID: ${transactionId},
-        type: 'success'
+        title: "Payment Successful",
+        message: `Payment of $${amount} completed successfully. Transaction ID: ${transactionId}`,
+        type: "success",
       });
 
       // Send email
@@ -78,28 +81,28 @@ const simulatePayment = async (req, res, next) => {
       );
       await sendEmail({
         to: request.citizen.email,
-        ...emailContent
+        ...emailContent,
       });
 
       res.status(201).json({
         success: true,
-        message: 'Payment processed successfully',
-        data: payment
+        message: "Payment processed successfully",
+        data: payment,
       });
     } else {
       // Create notification for failed payment
       await Notification.create({
         userId,
         requestId,
-        title: 'Payment Failed',
-        message: Payment of $${amount} failed. Please try again.,
-        type: 'error'
+        title: "Payment Failed",
+        message: `Payment of $${amount} failed. Please try again.`,
+        type: "error",
       });
 
       res.status(400).json({
         success: false,
-        message: 'Payment processing failed. Please try again.',
-        data: payment
+        message: "Payment processing failed. Please try again.",
+        data: payment,
       });
     }
   } catch (error) {
@@ -117,31 +120,31 @@ const getPaymentByRequestId = async (req, res, next) => {
       include: [
         {
           model: Request,
-          as: 'request',
-          include: [{ model: Service, as: 'service' }]
+          as: "request",
+          include: [{ model: Service, as: "service" }],
         },
-        { model: User, as: 'user', attributes: { exclude: ['password'] } }
-      ]
+        { model: User, as: "user", attributes: { exclude: ["password"] } },
+      ],
     });
 
     if (!payment) {
       return res.status(404).json({
         success: false,
-        message: 'Payment not found'
+        message: "Payment not found",
       });
     }
 
     // Check authorization
-    if (req.user.role === 'citizen' && payment.userId !== req.user.id) {
+    if (req.user.role === "citizen" && payment.userId !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: "Access denied",
       });
     }
 
     res.json({
       success: true,
-      data: payment
+      data: payment,
     });
   } catch (error) {
     next(error);
@@ -150,12 +153,7 @@ const getPaymentByRequestId = async (req, res, next) => {
 // Get all payments (Admin only)
 const getAllPayments = async (req, res, next) => {
   try {
-    const {
-      status,
-      paymentMethod,
-      page = 1,
-      limit = 10
-    } = req.query;
+    const { status, paymentMethod, page = 1, limit = 10 } = req.query;
 
     const where = {};
     if (status) where.paymentStatus = status;
@@ -168,14 +166,14 @@ const getAllPayments = async (req, res, next) => {
       include: [
         {
           model: Request,
-          as: 'request',
-          include: [{ model: Service, as: 'service' }]
+          as: "request",
+          include: [{ model: Service, as: "service" }],
         },
-        { model: User, as: 'user', attributes: { exclude: ['password'] } }
+        { model: User, as: "user", attributes: { exclude: ["password"] } },
       ],
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
       limit: parseInt(limit),
-      offset
+      offset,
     });
 
     res.json({
@@ -183,7 +181,7 @@ const getAllPayments = async (req, res, next) => {
       count,
       totalPages: Math.ceil(count / parseInt(limit)),
       currentPage: parseInt(page),
-      data: rows
+      data: rows,
     });
   } catch (error) {
     next(error);
@@ -193,16 +191,30 @@ const getAllPayments = async (req, res, next) => {
 // Get payment statistics
 const getPaymentStats = async (req, res, next) => {
   try {
-    const { sequelize } = require('../config/database');
+    const { sequelize } = require("../config/database");
 
     const stats = await Payment.findOne({
       attributes: [
-        [sequelize.fn('COUNT', sequelize.col('id')), 'totalTransactions'],
-        [sequelize.fn('SUM', sequelize.col('amount')), 'totalRevenue'],
-        [sequelize.fn('COUNT', sequelize.literal("CASE WHEN payment_status = 'completed' THEN 1 END")), 'completedPayments'],
-        [sequelize.fn('COUNT', sequelize.literal("CASE WHEN payment_status = 'failed' THEN 1 END")), 'failedPayments']
+        [sequelize.fn("COUNT", sequelize.col("id")), "totalTransactions"],
+        [sequelize.fn("SUM", sequelize.col("amount")), "totalRevenue"],
+        [
+          sequelize.fn(
+            "COUNT",
+            sequelize.literal(
+              "CASE WHEN payment_status = 'completed' THEN 1 END"
+            )
+          ),
+          "completedPayments",
+        ],
+        [
+          sequelize.fn(
+            "COUNT",
+            sequelize.literal("CASE WHEN payment_status = 'failed' THEN 1 END")
+          ),
+          "failedPayments",
+        ],
       ],
-      raw: true
+      raw: true,
     });
 
     res.json({
@@ -211,8 +223,8 @@ const getPaymentStats = async (req, res, next) => {
         totalTransactions: parseInt(stats.totalTransactions) || 0,
         totalRevenue: parseFloat(stats.totalRevenue) || 0,
         completedPayments: parseInt(stats.completedPayments) || 0,
-        failedPayments: parseInt(stats.failedPayments) || 0
-      }
+        failedPayments: parseInt(stats.failedPayments) || 0,
+      },
     });
   } catch (error) {
     next(error);
@@ -228,23 +240,23 @@ const refundPayment = async (req, res, next) => {
     if (!payment) {
       return res.status(404).json({
         success: false,
-        message: 'Payment not found'
+        message: "Payment not found",
       });
     }
 
-    if (payment.paymentStatus !== 'completed') {
+    if (payment.paymentStatus !== "completed") {
       return res.status(400).json({
         success: false,
-        message: 'Only completed payments can be refunded'
+        message: "Only completed payments can be refunded",
       });
     }
 
-    await payment.update({ paymentStatus: 'refunded' });
+    await payment.update({ paymentStatus: "refunded" });
 
     res.json({
       success: true,
-      message: 'Payment refunded successfully',
-      data: payment
+      message: "Payment refunded successfully",
+      data: payment,
     });
   } catch (error) {
     next(error);
@@ -256,5 +268,5 @@ module.exports = {
   getPaymentByRequestId,
   getAllPayments,
   getPaymentStats,
-  refundPayment
+  refundPayment,
 };
