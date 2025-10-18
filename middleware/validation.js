@@ -35,7 +35,7 @@ const registerSchema = Joi.object({
     then: Joi.required(),
     otherwise: Joi.optional(),
   }),
-  phoneNumber: Joi.string().optional(),
+  phone: Joi.string().optional(), // <-- updated from phoneNumber
   address: Joi.string().optional(),
   jobTitle: Joi.string().when("role", {
     is: Joi.string().valid("officer", "department_head"),

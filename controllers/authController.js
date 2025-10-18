@@ -1,15 +1,27 @@
 const { User, Department } = require("../models");
 const { generateToken } = require("../middleware/auth");
 
-// Register new user
+// ========================
+// REGISTER NEW USER
+// ========================
 const register = async (req, res, next) => {
   try {
-    const userData = req.body;
+    const { name, email, password, role, nationalId, phone, address } =
+      req.body;
 
-    // Check if user already exists
+    // Validate required fields
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, password, and role are required",
+      });
+    }
+
+    // Check if email already exists
     const existingUser = await User.findOne({
-      where: { email: userData.email },
+      where: { email: email.toLowerCase() },
     });
+
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -18,9 +30,9 @@ const register = async (req, res, next) => {
     }
 
     // Check national ID for citizens
-    if (userData.role === "citizen" && userData.nationalId) {
+    if (role === "citizen" && nationalId) {
       const existingNationalId = await User.findOne({
-        where: { nationalId: userData.nationalId },
+        where: { nationalId },
       });
       if (existingNationalId) {
         return res.status(400).json({
@@ -30,8 +42,16 @@ const register = async (req, res, next) => {
       }
     }
 
-    // Create user
-    const user = await User.create(userData);
+    // Create new user
+    const user = await User.create({
+      name,
+      email: email.toLowerCase(),
+      password,
+      role,
+      nationalId: nationalId || null,
+      phone: phone || null,
+      address: address || null,
+    });
 
     // Generate token
     const token = generateToken(user.id);
@@ -39,24 +59,29 @@ const register = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      data: {
-        user,
-        token,
-      },
+      data: { user, token },
     });
   } catch (error) {
     next(error);
   }
 };
 
-// Login user
+// ========================
+// LOGIN USER
+// ========================
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Find user with password
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
     const user = await User.findOne({
-      where: { email },
+      where: { email: email.toLowerCase() },
       include: [{ model: Department, as: "department" }],
     });
 
@@ -75,7 +100,6 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Compare password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -84,26 +108,23 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Generate token
     const token = generateToken(user.id);
-
-    // Remove password from response
     const userResponse = user.toJSON();
+    delete userResponse.password;
 
     res.json({
       success: true,
       message: "Login successful",
-      data: {
-        user: userResponse,
-        token,
-      },
+      data: { user: userResponse, token },
     });
   } catch (error) {
     next(error);
   }
 };
 
-// Get current user profile
+// ========================
+// GET CURRENT USER PROFILE
+// ========================
 const getProfile = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.user.id, {
@@ -120,7 +141,9 @@ const getProfile = async (req, res, next) => {
   }
 };
 
-// Update profile
+// ========================
+// UPDATE USER PROFILE
+// ========================
 const updateProfile = async (req, res, next) => {
   try {
     const { id } = req.user;
@@ -151,15 +174,22 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-// Change password
+// ========================
+// CHANGE PASSWORD
+// ========================
 const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const { id } = req.user;
 
-    const user = await User.findByPk(id);
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Current and new password are required",
+      });
+    }
 
-    // Verify current password
+    const user = await User.findByPk(id);
     const isPasswordValid = await user.comparePassword(currentPassword);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -168,7 +198,6 @@ const changePassword = async (req, res, next) => {
       });
     }
 
-    // Update password
     user.password = newPassword;
     await user.save();
 
@@ -180,6 +209,10 @@ const changePassword = async (req, res, next) => {
     next(error);
   }
 };
+
+// ========================
+// EXPORT CONTROLLER
+// ========================
 module.exports = {
   register,
   login,
